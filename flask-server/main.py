@@ -11,17 +11,18 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import VotingClassifier, RandomForestClassifier
 import numpy as np
 from numpy import random
-from tiingo import TiingoClient
+
 
 app = Flask("__main__")
 CORS(app)
-TIINGO_API_KEY = '55bc37569b161cb260a333291d0baf6b3af6d295'
-config = {}
-config['api_key'] = TIINGO_API_KEY
-client = TiingoClient(config)
 
-model_list = ['MSFT', 'AAPL', 'AMZN', 'GOOGL', 'FB', 'XOM', 'JNJ', 'V', 'PG', 'JPM', 
-              'UNH', 'MA', 'INTC', 'VZ', 'HD', 'T', 'PFE', 'MRK', 'PEP', 'DIS']
+model_list = [['MSFT', 'Microsoft'], ['AAPL', 'Apple'], ['AMZN', 'Amazon'], ['GOOGL', 'Google'], 
+['FB', 'Facebook'], ['XOM', 'Exxon Mobil'], ['JNJ', 'Johnson & Johnson'], ['V', 'Visa'],
+['PG', 'Procter & Gamble'], ['JPM', 'JPMorgan Chase'], ['UNH', 'UnitedHealth Group'], 
+['MA', 'Mastercard'], ['INTC', 'Intel Corporation'], ['VZ', 'Verizon'], ['HD', 'Home Depot'], 
+['T', 'AT&T'], ['PFE', 'Pfizer'], ['MRK', 'Merck & Co.'], ['PEP', 'PepsiCo'], 
+['DIS', 'Walt Disney Co.']]
+
 tickers = pickle.load(open('sp500tickeradjusted.pickle', 'rb'))
 start = date(2006, 1, 2)
 end = date(2018, 5, 1)
@@ -39,10 +40,9 @@ def return_index():
 
 @app.route("/data", methods=['GET'])
 def gen_stock_data():
-    print('Getting data from server...')
     #grab a random ticker from the list
     random_index = random.randint(len(model_list))
-    random_ticker = model_list[random_index]
+    random_ticker = model_list[random_index][0]
     model = pickle.load(open(f'model_{random_ticker}.pickle', 'rb'))
 
     #grab a random date
@@ -50,25 +50,12 @@ def gen_stock_data():
     random_start = start + timedelta(days=days)
     random_end = date(random_start.year + 1, random_start.month, random_start.day)
 
-    #get data from Tiingo
-    #try:
-    #    series = client.get_dataframe(random_ticker,
-    #                                frequency='daily',
-    #                                metric_name='close', 
-    #                                startDate=random_start,
-    #                                endDate=random_end)
-        
-    #except:
-    #    e = sys.exc_info()[0]
-    #    return f'Error: {e}'
-
     #load data from server into df for desired timeframe
     X = pd.read_csv('server_stock_data_pct.csv', index_col=0)
     stock_prices = pd.read_csv('server_stock_data.csv', index_col=0)
 
     series = stock_prices[random_ticker]
     series.index = pd.to_datetime(series.index)
-    print('series: ', series)
     series = series.loc[random_start:random_end]
     
 
@@ -85,27 +72,22 @@ def gen_stock_data():
     predictions = model.predict(X_val)
     #Fill any NaN cells
     series = series.replace([np.inf, -np.inf])
-    series.fillna(value=0, inplace=True)
+    print(series)
+    print('tye series: ', type(series))
+    series.interpolate(method='linear', inplace=True)
    
     #make a new dataframe and fill with stock data
     columns = ['close', 'predictions']
     df = pd.DataFrame(index=X.index, columns=columns)
-    print('CURRENT TICKER: ', random_ticker)
-    print('START DATE:', random_start)
-    print('END DATE: ', random_end)
-    print('X index length: ', len(X.index))
-    print('Series Values Length:', len(series.values))
-    #df['close'] = series.values
     df['close'] = series.values
     df['predictions'] = predictions
 
     df_json = df.to_json(orient = 'split')
-    #response = {'stock': random_ticker, 'data': df_json}
 
     #Send results in JSON format
-    return {'stock': random_ticker, 'data': df_json}
+    return {'stock': model_list[random_index], 'data': df_json}
 
     
 
 
-app.run(debug=True)
+app.run()
