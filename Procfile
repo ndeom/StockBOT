@@ -1,0 +1,1 @@
+web: (cd flask-server && python3 main.py)
