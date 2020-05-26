@@ -6,9 +6,10 @@ from datetime import date, timedelta
 from sklearn import svm 
 import numpy as np
 from numpy import random
+import os
 
 
-app = Flask("__main__")
+app = Flask("__name__")
 CORS(app)
 
 model_list = [['MSFT', 'Microsoft'], ['AAPL', 'Apple'], ['AMZN', 'Amazon'], ['GOOGL', 'Google'], 
@@ -82,7 +83,6 @@ def gen_stock_data():
     #Send results in JSON format
     return {'stock': model_list[random_index], 'data': df_json}
 
-    
-
-
-app.run(host='0.0.0.0')
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
