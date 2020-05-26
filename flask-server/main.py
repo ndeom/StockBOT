@@ -1,14 +1,9 @@
 from flask import (Flask, render_template, request, jsonify)
 from flask_cors import CORS
-import sys
 import pandas as pd
-import pandas_datareader as pdr
-import os
 import pickle
 from datetime import date, timedelta
-from sklearn import svm, neighbors
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import VotingClassifier, RandomForestClassifier
+from sklearn import svm 
 import numpy as np
 from numpy import random
 
