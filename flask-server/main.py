@@ -85,4 +85,4 @@ def gen_stock_data():
     
 
 
-app.run()
+app.run(host='0.0.0.0')
