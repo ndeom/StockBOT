@@ -1,0 +1,3 @@
+[submodule "stock-game"]
+	path = stock-game
+	url = /stock-game
