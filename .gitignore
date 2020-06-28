@@ -1,2 +1,4 @@
-/stock-game
+stock-game/*
 Procfile
+.gitmodules
+.gitignore
